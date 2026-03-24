@@ -7,6 +7,9 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+eventFrame:RegisterEvent("EQUIPMENT_SWAP_FINISHED")
+eventFrame:RegisterEvent("EQUIPMENT_SETS_CHANGED")
+eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
 
 local function IsPlayerCastingOrChanneling()
     if addon.IsPlayerCastingOrChanneling then
@@ -26,6 +29,14 @@ local function RefreshBuildNameWhenReady(allowSound, retriesLeft)
     end
 
     addon.RefreshBuildName(allowSound)
+end
+
+local function RefreshEquipmentNameSoon()
+    C_Timer.After(0.05, function()
+        if addon.RefreshEquipmentName then
+            addon.RefreshEquipmentName()
+        end
+    end)
 end
 
 eventFrame:SetScript("OnEvent", function(self, event, ...)
@@ -76,6 +87,25 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             end
             addon.RefreshBuildName(false)
         end)
+        return
+    end
+
+    if event == "EQUIPMENT_SWAP_FINISHED" then
+        local success = ...
+        if success == false then
+            return
+        end
+        RefreshEquipmentNameSoon()
+        return
+    end
+
+    if event == "EQUIPMENT_SETS_CHANGED" then
+        RefreshEquipmentNameSoon()
+        return
+    end
+
+    if event == "PLAYER_EQUIPMENT_CHANGED" then
+        RefreshEquipmentNameSoon()
         return
     end
 end)

@@ -44,6 +44,12 @@ function addon.InitializeSavedVariables()
     if db.disableAudio == nil then
         db.disableAudio = false
     end
+    if db.showEquipmentBar == nil then
+        db.showEquipmentBar = false
+    end
+    if db.showLineTitles == nil then
+        db.showLineTitles = true
+    end
     if db.mainFrameScale == nil then
         db.mainFrameScale = 1.0
     end
@@ -67,6 +73,16 @@ end
 function addon.IsAudioDisabled()
     local db = addon.GetDB()
     return db and db.disableAudio == true
+end
+
+function addon.IsEquipmentBarEnabled()
+    local db = addon.GetDB()
+    return db and db.showEquipmentBar == true or false
+end
+
+function addon.AreLineTitlesEnabled()
+    local db = addon.GetDB()
+    return db == nil or db.showLineTitles ~= false
 end
 
 function addon.ClampMainFrameScale(value)
@@ -218,6 +234,26 @@ end
 function addon.GetActiveBuildName()
     local name = addon.GetActiveBuildInfo()
     return name
+end
+
+function addon.GetActiveEquipmentSetName()
+    if not C_EquipmentSet or not C_EquipmentSet.GetEquipmentSetIDs or not C_EquipmentSet.GetEquipmentSetInfo then
+        return "Equipment Manager unavailable", nil
+    end
+
+    local setIDs = C_EquipmentSet.GetEquipmentSetIDs()
+    if not setIDs or #setIDs == 0 then
+        return "No equipment set", nil
+    end
+
+    for _, setID in ipairs(setIDs) do
+        local name, _, _, isEquipped = C_EquipmentSet.GetEquipmentSetInfo(setID)
+        if isEquipped then
+            return (name and name ~= "" and name) or "Unknown set", setID
+        end
+    end
+
+    return "No set equipped", nil
 end
 
 function addon.RegisterSlashCommands()

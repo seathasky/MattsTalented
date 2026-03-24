@@ -3,6 +3,64 @@ local _, addon = ...
 
 local C = addon.const
 
+local function UpdateLineTitleLayout()
+    if not addon.mainFrame then
+        return
+    end
+
+    local frame = addon.mainFrame
+    local showTitles = addon.AreLineTitlesEnabled and addon.AreLineTitlesEnabled()
+    local rowHeight = showTitles and 44 or C.FRAME_HEIGHT
+
+    frame:SetHeight(rowHeight)
+    if frame.equipmentFrame then
+        frame.equipmentFrame:SetHeight(rowHeight)
+    end
+
+    if frame.buildTitleText then
+        frame.buildTitleText:SetText("Current Talents:")
+        frame.buildTitleText:SetShown(showTitles)
+    end
+    if frame.equipmentTitleText then
+        frame.equipmentTitleText:SetText("Equipment:")
+        frame.equipmentTitleText:SetShown(showTitles)
+    end
+
+    if frame.buildText then
+        frame.buildText:ClearAllPoints()
+        if showTitles then
+            frame.buildText:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 8, 4)
+            frame.buildText:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -8, 4)
+        else
+            frame.buildText:SetPoint("LEFT", frame, "LEFT", 8, 0)
+            frame.buildText:SetPoint("RIGHT", frame, "RIGHT", -8, 0)
+        end
+    end
+
+    if frame.buildTitleText then
+        frame.buildTitleText:ClearAllPoints()
+        frame.buildTitleText:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -4)
+        frame.buildTitleText:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, -4)
+    end
+
+    if frame.equipmentText and frame.equipmentFrame then
+        frame.equipmentText:ClearAllPoints()
+        if showTitles then
+            frame.equipmentText:SetPoint("BOTTOMLEFT", frame.equipmentFrame, "BOTTOMLEFT", 8, 4)
+            frame.equipmentText:SetPoint("BOTTOMRIGHT", frame.equipmentFrame, "BOTTOMRIGHT", -8, 4)
+        else
+            frame.equipmentText:SetPoint("LEFT", frame.equipmentFrame, "LEFT", 8, 0)
+            frame.equipmentText:SetPoint("RIGHT", frame.equipmentFrame, "RIGHT", -8, 0)
+        end
+    end
+
+    if frame.equipmentTitleText and frame.equipmentFrame then
+        frame.equipmentTitleText:ClearAllPoints()
+        frame.equipmentTitleText:SetPoint("TOPLEFT", frame.equipmentFrame, "TOPLEFT", 8, -4)
+        frame.equipmentTitleText:SetPoint("TOPRIGHT", frame.equipmentFrame, "TOPRIGHT", -8, -4)
+    end
+end
+
 function addon.UpdateTitleBarVisibility()
     if not addon.mainFrame or not addon.mainFrame.titleBar then
         return
@@ -11,6 +69,9 @@ function addon.UpdateTitleBarVisibility()
     local frame = addon.mainFrame
     local hoverZone = frame.hoverZone
     local showTitle = hoverZone and hoverZone:IsMouseOver() or frame:IsMouseOver()
+    if frame.equipmentFrame and frame.equipmentFrame:IsShown() and frame.equipmentFrame:IsMouseOver() then
+        showTitle = true
+    end
     frame.titleBar:SetShown(showTitle)
 end
 
@@ -37,6 +98,15 @@ function addon.ApplyTextColor()
     if addon.mainFrame.buildFxText then
         addon.mainFrame.buildFxText:SetTextColor(r, g, b, 1)
     end
+    if addon.mainFrame.buildTitleText then
+        addon.mainFrame.buildTitleText:SetTextColor(r, g, b, 1)
+    end
+    if addon.mainFrame.equipmentText then
+        addon.mainFrame.equipmentText:SetTextColor(r, g, b, 1)
+    end
+    if addon.mainFrame.equipmentTitleText then
+        addon.mainFrame.equipmentTitleText:SetTextColor(r, g, b, 1)
+    end
 end
 
 function addon.ApplyFontMode()
@@ -57,6 +127,10 @@ function addon.ApplyFontMode()
     if f.titleText then
         if useAddon then f.titleText:SetFont(C.ADDON_FONT, 11, "") else f.titleText:SetFont(defaultFont, 10, "") end
     end
+    if f.buildTitleText then
+        if useAddon then f.buildTitleText:SetFont(C.ADDON_FONT, 11, "") else f.buildTitleText:SetFont(defaultFont, 10, "") end
+        f.buildTitleText:SetJustifyH(justify)
+    end
     if f.talentsText then
         if useAddon then f.talentsText:SetFont(C.ADDON_FONT, 10, "") else f.talentsText:SetFont(defaultFont, 10, "") end
     end
@@ -64,10 +138,19 @@ function addon.ApplyFontMode()
         if useAddon then f.buildFxText:SetFont(C.ADDON_FONT, 14, "") else f.buildFxText:SetFont(defaultFont, 12, "") end
         f.buildFxText:SetJustifyH(justify)
     end
+    if f.equipmentText then
+        if useAddon then f.equipmentText:SetFont(C.ADDON_FONT, 14, "") else f.equipmentText:SetFont(defaultFont, 12, "") end
+        f.equipmentText:SetJustifyH(justify)
+    end
+    if f.equipmentTitleText then
+        if useAddon then f.equipmentTitleText:SetFont(C.ADDON_FONT, 11, "") else f.equipmentTitleText:SetFont(defaultFont, 10, "") end
+        f.equipmentTitleText:SetJustifyH(justify)
+    end
     if addon.ApplyTalentWindowTextStyle then
         addon.ApplyTalentWindowTextStyle()
     end
 
+    UpdateLineTitleLayout()
     addon.ApplyTextColor()
     addon.UpdateFontButton()
 end
@@ -104,6 +187,9 @@ function addon.ApplyFrameAlpha()
     local alphaPercent = (db and db.bgAlphaPercent) or addon.DEFAULT_BG_ALPHA_PERCENT
     local alpha = math.max(0, math.min(100, alphaPercent)) / 100
     addon.mainFrame:SetBackdropColor(0, 0, 0, alpha)
+    if addon.mainFrame.equipmentFrame then
+        addon.mainFrame.equipmentFrame:SetBackdropColor(0, 0, 0, alpha)
+    end
 end
 
 function addon.UpdateColorSwatch()
@@ -183,6 +269,9 @@ function addon.UpdateFrameWidth()
     end
 
     addon.mainFrame:SetWidth(addon.GetBarWidth())
+    if addon.mainFrame.equipmentFrame then
+        addon.mainFrame.equipmentFrame:SetWidth(addon.GetBarWidth())
+    end
 end
 
 function addon.ApplyMainFrameScale()
@@ -204,6 +293,20 @@ function addon.ApplyMainFrameVisibility()
     if not hideMainBar then
         addon.UpdateTitleBarVisibility()
     end
+    if addon.UpdateEquipmentBarVisibility then
+        addon.UpdateEquipmentBarVisibility()
+    end
+end
+
+function addon.UpdateEquipmentBarVisibility()
+    if not addon.mainFrame or not addon.mainFrame.equipmentFrame then
+        return
+    end
+
+    local db = addon.GetDB()
+    local hideMainBar = db and db.hideMainBar
+    local showEquipmentBar = addon.IsEquipmentBarEnabled and addon.IsEquipmentBarEnabled()
+    addon.mainFrame.equipmentFrame:SetShown(not hideMainBar and showEquipmentBar)
 end
 
 function addon.PlayBuildChangeAnimation()
@@ -354,6 +457,19 @@ function addon.RefreshBuildName(allowSound)
         addon._lastStableConfigID = configID
     end
     addon.UpdateFrameWidth()
+    if addon.RefreshEquipmentName then
+        addon.RefreshEquipmentName()
+    end
+end
+
+function addon.RefreshEquipmentName()
+    if not addon.mainFrame or not addon.mainFrame.equipmentText then
+        return
+    end
+
+    local equipmentName = addon.GetActiveEquipmentSetName and addon.GetActiveEquipmentSetName() or "No set equipped"
+    addon.mainFrame.equipmentText:SetText(equipmentName)
+    UpdateLineTitleLayout()
 end
 
 function addon.StartHoverUpdater()
@@ -397,6 +513,13 @@ function addon.InitializeMainUI()
     buildText:SetTextColor(0.92, 0.94, 0.96, 1)
     buildText:SetText("Loading...")
 
+    local buildTitleText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    buildTitleText:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -4)
+    buildTitleText:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, -4)
+    addon.SetAddonFont(buildTitleText, 11, "")
+    buildTitleText:SetTextColor(0.92, 0.94, 0.96, 1)
+    buildTitleText:SetText("Current Talents:")
+
     local buildFxText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     buildFxText:SetPoint("CENTER", buildText, "CENTER", 28, 0)
     buildFxText:SetJustifyH("CENTER")
@@ -404,6 +527,29 @@ function addon.InitializeMainUI()
     addon.SetAddonFont(buildFxText, 14, "")
     buildFxText:SetTextColor(0.92, 0.94, 0.96, 1)
     buildFxText:Hide()
+
+    local equipmentFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    equipmentFrame:SetPoint("TOPLEFT", frame, "BOTTOMLEFT", 0, -2)
+    equipmentFrame:SetPoint("TOPRIGHT", frame, "BOTTOMRIGHT", 0, -2)
+    equipmentFrame:SetHeight(C.FRAME_HEIGHT)
+    equipmentFrame:EnableMouse(true)
+    addon.CreateBackdrop(equipmentFrame, 0.55)
+
+    local equipmentText = equipmentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    equipmentText:SetPoint("LEFT", equipmentFrame, "LEFT", 8, 0)
+    equipmentText:SetPoint("RIGHT", equipmentFrame, "RIGHT", -8, 0)
+    equipmentText:SetJustifyH("CENTER")
+    equipmentText:SetJustifyV("MIDDLE")
+    addon.SetAddonFont(equipmentText, 14, "")
+    equipmentText:SetTextColor(0.92, 0.94, 0.96, 1)
+    equipmentText:SetText("Loading...")
+
+    local equipmentTitleText = equipmentFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    equipmentTitleText:SetPoint("TOPLEFT", equipmentFrame, "TOPLEFT", 8, -4)
+    equipmentTitleText:SetPoint("TOPRIGHT", equipmentFrame, "TOPRIGHT", -8, -4)
+    addon.SetAddonFont(equipmentTitleText, 11, "")
+    equipmentTitleText:SetTextColor(0.92, 0.94, 0.96, 1)
+    equipmentTitleText:SetText("Equipment:")
 
     local titleBar = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     titleBar:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, 1)
@@ -458,12 +604,16 @@ function addon.InitializeMainUI()
     end)
 
     frame.buildText = buildText
+    frame.buildTitleText = buildTitleText
     frame.buildFxText = buildFxText
     frame.titleText = title
     frame.titleBar = titleBar
     frame.hoverZone = hoverZone
     frame.talentsText = talentsText
     frame.talentsButton = talentsButton
+    frame.equipmentFrame = equipmentFrame
+    frame.equipmentText = equipmentText
+    frame.equipmentTitleText = equipmentTitleText
 
     addon.mainFrame = frame
 
@@ -472,7 +622,10 @@ function addon.InitializeMainUI()
     addon.UpdateFrameWidth()
     addon.ApplyFrameAlpha()
     addon.ApplyFontMode()
+    UpdateLineTitleLayout()
     addon.RefreshBuildName()
+    addon.RefreshEquipmentName()
+    addon.UpdateEquipmentBarVisibility()
     addon.UpdateTitleBarVisibility()
     addon.StartHoverUpdater()
     addon.ApplyMainFrameVisibility()

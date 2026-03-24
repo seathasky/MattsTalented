@@ -50,6 +50,12 @@ local function ApplyOptionsNow()
     if addon.ApplyMainFrameVisibility then
         addon.ApplyMainFrameVisibility()
     end
+    if addon.RefreshBuildName then
+        addon.RefreshBuildName(false)
+    end
+    if addon.RefreshEquipmentName then
+        addon.RefreshEquipmentName()
+    end
     if addon.EnsureTalentWindowHooks then
         addon.EnsureTalentWindowHooks()
     end
@@ -213,6 +219,36 @@ function addon.InitializeOptions()
     CreateCheckbox(
         panel,
         -88,
+        "Show Equipment Manager Bar",
+        "Show a second bar under Talents with the active Equipment Manager set.",
+        function()
+            local db = addon.GetDB()
+            return db and db.showEquipmentBar and true or false
+        end,
+        function(value)
+            local db = addon.GetDB()
+            if db then db.showEquipmentBar = value end
+        end
+    )
+
+    CreateCheckbox(
+        panel,
+        -120,
+        "Show Line Titles",
+        "Show 'Current Talents:' and 'Equipment:' labels in the on-screen bars.",
+        function()
+            local db = addon.GetDB()
+            return db == nil or db.showLineTitles ~= false
+        end,
+        function(value)
+            local db = addon.GetDB()
+            if db then db.showLineTitles = value end
+        end
+    )
+
+    CreateCheckbox(
+        panel,
+        -152,
         "Use Minimal Theme",
         "Turning this off restores Blizzard default theme and 100% scale.",
         function()
@@ -227,7 +263,7 @@ function addon.InitializeOptions()
 
     CreateCheckbox(
         panel,
-        -120,
+        -184,
         "Scale Talent Window (70%)",
         "Applies 70% scale to the talent window when Minimal Theme is enabled.",
         function()
@@ -242,7 +278,7 @@ function addon.InitializeOptions()
 
     CreateCheckbox(
         panel,
-        -152,
+        -216,
         "Disable Audio",
         "Disables the talent change mp3 sound.",
         function()
@@ -256,12 +292,12 @@ function addon.InitializeOptions()
     )
 
     local styleHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    styleHeader:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -196)
+    styleHeader:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -260)
     styleHeader:SetText("On-Screen Window Style")
 
-    CreateLabel(panel, 16, -224, "Width")
+    CreateLabel(panel, 16, -288, "Width")
     local widthSlider = CreateFrame("Slider", "MattsTalentedOptionsWidthSlider", panel, "OptionsSliderTemplate")
-    widthSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 70, -218)
+    widthSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 70, -282)
     widthSlider:SetWidth(220)
     widthSlider:SetMinMaxValues(C.MIN_WIDTH, C.MAX_WIDTH)
     widthSlider:SetValueStep(1)
@@ -281,9 +317,9 @@ function addon.InitializeOptions()
         self:SetValue(addon.GetBarWidth())
     end)
 
-    CreateLabel(panel, 16, -272, "Background Alpha")
+    CreateLabel(panel, 16, -336, "Background Alpha")
     local alphaSlider = CreateFrame("Slider", "MattsTalentedOptionsAlphaSlider", panel, "OptionsSliderTemplate")
-    alphaSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 130, -266)
+    alphaSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 130, -330)
     alphaSlider:SetWidth(160)
     alphaSlider:SetMinMaxValues(0, 100)
     alphaSlider:SetValueStep(1)
@@ -304,10 +340,10 @@ function addon.InitializeOptions()
         self:SetValue((db and db.bgAlphaPercent) or addon.DEFAULT_BG_ALPHA_PERCENT)
     end)
 
-    CreateLabel(panel, 16, -320, "Font")
+    CreateLabel(panel, 16, -384, "Font")
     local fontButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     fontButton:SetSize(130, 22)
-    fontButton:SetPoint("TOPLEFT", panel, "TOPLEFT", 70, -314)
+    fontButton:SetPoint("TOPLEFT", panel, "TOPLEFT", 70, -378)
     fontButton:SetScript("OnClick", function()
         addon.ToggleFontMode()
         if addon.GetCurrentStyleTooltipText then
@@ -326,9 +362,9 @@ function addon.InitializeOptions()
         addon.OpenTextColorPicker()
     end)
 
-    CreateLabel(panel, 16, -364, "Global Scale")
+    CreateLabel(panel, 16, -428, "Global Scale")
     local scaleSlider = CreateFrame("Slider", "MattsTalentedOptionsMainScaleSlider", panel, "OptionsSliderTemplate")
-    scaleSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 130, -358)
+    scaleSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 130, -422)
     scaleSlider:SetWidth(160)
     scaleSlider:SetMinMaxValues(60, 140)
     scaleSlider:SetValueStep(1)
