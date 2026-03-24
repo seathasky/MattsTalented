@@ -45,10 +45,13 @@ function addon.InitializeSavedVariables()
         db.disableAudio = false
     end
     if db.showEquipmentBar == nil then
-        db.showEquipmentBar = false
+        db.showEquipmentBar = true
     end
     if db.showLineTitles == nil then
         db.showLineTitles = true
+    end
+    if db.showBarIcons == nil then
+        db.showBarIcons = true
     end
     if db.mainFrameScale == nil then
         db.mainFrameScale = 1.0
@@ -77,12 +80,17 @@ end
 
 function addon.IsEquipmentBarEnabled()
     local db = addon.GetDB()
-    return db and db.showEquipmentBar == true or false
+    return db == nil or db.showEquipmentBar ~= false
 end
 
 function addon.AreLineTitlesEnabled()
     local db = addon.GetDB()
     return db == nil or db.showLineTitles ~= false
+end
+
+function addon.AreBarIconsEnabled()
+    local db = addon.GetDB()
+    return db == nil or db.showBarIcons ~= false
 end
 
 function addon.ClampMainFrameScale(value)

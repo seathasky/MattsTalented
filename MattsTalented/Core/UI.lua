@@ -3,6 +3,10 @@ local _, addon = ...
 
 local C = addon.const
 
+local BAR_ICON_SIZE = 18
+local BAR_ICON_LEFT_PADDING = 6
+local BAR_TEXT_WITH_ICON_LEFT_PADDING = 30
+
 local function UpdateLineTitleLayout()
     if not addon.mainFrame then
         return
@@ -10,6 +14,8 @@ local function UpdateLineTitleLayout()
 
     local frame = addon.mainFrame
     local showTitles = addon.AreLineTitlesEnabled and addon.AreLineTitlesEnabled()
+    local showIcons = addon.AreBarIconsEnabled and addon.AreBarIconsEnabled()
+    local leftInset = showIcons and BAR_TEXT_WITH_ICON_LEFT_PADDING or 8
     local rowHeight = showTitles and 44 or C.FRAME_HEIGHT
 
     frame:SetHeight(rowHeight)
@@ -29,36 +35,66 @@ local function UpdateLineTitleLayout()
     if frame.buildText then
         frame.buildText:ClearAllPoints()
         if showTitles then
-            frame.buildText:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 8, 4)
+            frame.buildText:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", leftInset, 4)
             frame.buildText:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -8, 4)
         else
-            frame.buildText:SetPoint("LEFT", frame, "LEFT", 8, 0)
+            frame.buildText:SetPoint("LEFT", frame, "LEFT", leftInset, 0)
             frame.buildText:SetPoint("RIGHT", frame, "RIGHT", -8, 0)
         end
     end
 
     if frame.buildTitleText then
         frame.buildTitleText:ClearAllPoints()
-        frame.buildTitleText:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -4)
+        frame.buildTitleText:SetPoint("TOPLEFT", frame, "TOPLEFT", leftInset, -4)
         frame.buildTitleText:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, -4)
     end
 
     if frame.equipmentText and frame.equipmentFrame then
         frame.equipmentText:ClearAllPoints()
         if showTitles then
-            frame.equipmentText:SetPoint("BOTTOMLEFT", frame.equipmentFrame, "BOTTOMLEFT", 8, 4)
+            frame.equipmentText:SetPoint("BOTTOMLEFT", frame.equipmentFrame, "BOTTOMLEFT", leftInset, 4)
             frame.equipmentText:SetPoint("BOTTOMRIGHT", frame.equipmentFrame, "BOTTOMRIGHT", -8, 4)
         else
-            frame.equipmentText:SetPoint("LEFT", frame.equipmentFrame, "LEFT", 8, 0)
+            frame.equipmentText:SetPoint("LEFT", frame.equipmentFrame, "LEFT", leftInset, 0)
             frame.equipmentText:SetPoint("RIGHT", frame.equipmentFrame, "RIGHT", -8, 0)
         end
     end
 
     if frame.equipmentTitleText and frame.equipmentFrame then
         frame.equipmentTitleText:ClearAllPoints()
-        frame.equipmentTitleText:SetPoint("TOPLEFT", frame.equipmentFrame, "TOPLEFT", 8, -4)
+        frame.equipmentTitleText:SetPoint("TOPLEFT", frame.equipmentFrame, "TOPLEFT", leftInset, -4)
         frame.equipmentTitleText:SetPoint("TOPRIGHT", frame.equipmentFrame, "TOPRIGHT", -8, -4)
     end
+
+    if frame.buildIcon then
+        frame.buildIcon:ClearAllPoints()
+        frame.buildIcon:SetPoint("LEFT", frame, "LEFT", BAR_ICON_LEFT_PADDING, 0)
+        frame.buildIcon:SetSize(BAR_ICON_SIZE, BAR_ICON_SIZE)
+        frame.buildIcon:SetShown(showIcons)
+    end
+    if frame.equipmentIcon and frame.equipmentFrame then
+        frame.equipmentIcon:ClearAllPoints()
+        frame.equipmentIcon:SetPoint("LEFT", frame.equipmentFrame, "LEFT", BAR_ICON_LEFT_PADDING, 0)
+        frame.equipmentIcon:SetSize(BAR_ICON_SIZE, BAR_ICON_SIZE)
+        frame.equipmentIcon:SetShown(showIcons)
+    end
+end
+
+function addon.UpdateBarIcons()
+    if not addon.mainFrame then
+        return
+    end
+
+    local specIndex = GetSpecialization()
+    local specIcon = specIndex and select(4, GetSpecializationInfo(specIndex)) or nil
+    if addon.mainFrame.buildIcon then
+        addon.mainFrame.buildIcon:SetTexture(specIcon or "Interface\\Icons\\INV_Misc_QuestionMark")
+    end
+    if addon.mainFrame.equipmentIcon then
+        addon.mainFrame.equipmentIcon:SetTexture("Interface\\PaperDollInfoFrame\\UI-EquipmentManager-Toggle")
+    end
+
+    UpdateLineTitleLayout()
 end
 
 function addon.UpdateTitleBarVisibility()
@@ -435,6 +471,9 @@ function addon.RefreshBuildName(allowSound)
 
     local buildName, configID = addon.GetActiveBuildInfo()
     addon.mainFrame.buildText:SetText(buildName)
+    if addon.UpdateBarIcons then
+        addon.UpdateBarIcons()
+    end
 
     local allowTalentSwitchFX = allowSound and addon._soundReady
 
@@ -469,6 +508,9 @@ function addon.RefreshEquipmentName()
 
     local equipmentName = addon.GetActiveEquipmentSetName and addon.GetActiveEquipmentSetName() or "No set equipped"
     addon.mainFrame.equipmentText:SetText(equipmentName)
+    if addon.UpdateBarIcons then
+        addon.UpdateBarIcons()
+    end
     UpdateLineTitleLayout()
 end
 
@@ -520,6 +562,11 @@ function addon.InitializeMainUI()
     buildTitleText:SetTextColor(0.92, 0.94, 0.96, 1)
     buildTitleText:SetText("Current Talents:")
 
+    local buildIcon = frame:CreateTexture(nil, "OVERLAY")
+    buildIcon:SetSize(BAR_ICON_SIZE, BAR_ICON_SIZE)
+    buildIcon:SetPoint("LEFT", frame, "LEFT", BAR_ICON_LEFT_PADDING, 0)
+    buildIcon:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+
     local buildFxText = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     buildFxText:SetPoint("CENTER", buildText, "CENTER", 28, 0)
     buildFxText:SetJustifyH("CENTER")
@@ -550,6 +597,11 @@ function addon.InitializeMainUI()
     addon.SetAddonFont(equipmentTitleText, 11, "")
     equipmentTitleText:SetTextColor(0.92, 0.94, 0.96, 1)
     equipmentTitleText:SetText("Equipment:")
+
+    local equipmentIcon = equipmentFrame:CreateTexture(nil, "OVERLAY")
+    equipmentIcon:SetSize(BAR_ICON_SIZE, BAR_ICON_SIZE)
+    equipmentIcon:SetPoint("LEFT", equipmentFrame, "LEFT", BAR_ICON_LEFT_PADDING, 0)
+    equipmentIcon:SetTexture("Interface\\PaperDollInfoFrame\\UI-EquipmentManager-Toggle")
 
     local titleBar = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     titleBar:SetPoint("BOTTOMLEFT", frame, "TOPLEFT", 0, 1)
@@ -605,6 +657,7 @@ function addon.InitializeMainUI()
 
     frame.buildText = buildText
     frame.buildTitleText = buildTitleText
+    frame.buildIcon = buildIcon
     frame.buildFxText = buildFxText
     frame.titleText = title
     frame.titleBar = titleBar
@@ -614,6 +667,7 @@ function addon.InitializeMainUI()
     frame.equipmentFrame = equipmentFrame
     frame.equipmentText = equipmentText
     frame.equipmentTitleText = equipmentTitleText
+    frame.equipmentIcon = equipmentIcon
 
     addon.mainFrame = frame
 
@@ -622,6 +676,7 @@ function addon.InitializeMainUI()
     addon.UpdateFrameWidth()
     addon.ApplyFrameAlpha()
     addon.ApplyFontMode()
+    addon.UpdateBarIcons()
     UpdateLineTitleLayout()
     addon.RefreshBuildName()
     addon.RefreshEquipmentName()
