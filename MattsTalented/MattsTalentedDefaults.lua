@@ -26,6 +26,7 @@ addon.defaults = {
         showEquipmentBar = true,
         showLineTitles = true,
         showBarIcons = true,
+        showInstanceReminderPopup = true,
         mainFrameScale = 1.0,
         textStyle = 5,
         barWidth = 180,

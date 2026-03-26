@@ -53,6 +53,9 @@ function addon.InitializeSavedVariables()
     if db.showBarIcons == nil then
         db.showBarIcons = true
     end
+    if db.showInstanceReminderPopup == nil then
+        db.showInstanceReminderPopup = true
+    end
     if db.mainFrameScale == nil then
         db.mainFrameScale = 1.0
     end
@@ -91,6 +94,11 @@ end
 function addon.AreBarIconsEnabled()
     local db = addon.GetDB()
     return db == nil or db.showBarIcons ~= false
+end
+
+function addon.IsInstanceReminderPopupEnabled()
+    local db = addon.GetDB()
+    return db == nil or db.showInstanceReminderPopup ~= false
 end
 
 function addon.ClampMainFrameScale(value)

@@ -6,6 +6,7 @@ local C = addon.const
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 eventFrame:RegisterEvent("EQUIPMENT_SWAP_FINISHED")
 eventFrame:RegisterEvent("EQUIPMENT_SETS_CHANGED")
@@ -70,8 +71,22 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         C_Timer.After(0.5, function()
             RefreshBuildNameWhenReady(false, 5)
         end)
+        C_Timer.After(0.8, function()
+            if addon.CheckInstanceReminderPopup then
+                addon.CheckInstanceReminderPopup()
+            end
+        end)
         C_Timer.After(2.0, function()
             addon._soundReady = true
+        end)
+        return
+    end
+
+    if event == "ZONE_CHANGED_NEW_AREA" then
+        C_Timer.After(0.15, function()
+            if addon.CheckInstanceReminderPopup then
+                addon.CheckInstanceReminderPopup()
+            end
         end)
         return
     end

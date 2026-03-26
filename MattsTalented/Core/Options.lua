@@ -65,6 +65,9 @@ local function ApplyOptionsNow()
     if addon.RefreshTalentWindowAppearance then
         addon.RefreshTalentWindowAppearance()
     end
+    if addon.CheckInstanceReminderPopup then
+        addon.CheckInstanceReminderPopup()
+    end
 end
 
 local function ApplyBarStyleNow()
@@ -309,13 +312,28 @@ function addon.InitializeOptions()
         end
     )
 
+    CreateCheckbox(
+        panel,
+        -280,
+        "Show Dungeon/Raid Reminder Popup",
+        "Shows a centered reminder popup once when you enter a dungeon or raid.",
+        function()
+            local db = addon.GetDB()
+            return db == nil or db.showInstanceReminderPopup ~= false
+        end,
+        function(value)
+            local db = addon.GetDB()
+            if db then db.showInstanceReminderPopup = value end
+        end
+    )
+
     local styleHeader = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    styleHeader:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -292)
+    styleHeader:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -324)
     styleHeader:SetText("On-Screen Window Style")
 
-    CreateLabel(panel, 16, -320, "Width")
+    CreateLabel(panel, 16, -352, "Width")
     local widthSlider = CreateFrame("Slider", "MattsTalentedOptionsWidthSlider", panel, "OptionsSliderTemplate")
-    widthSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 70, -314)
+    widthSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 70, -346)
     widthSlider:SetWidth(220)
     widthSlider:SetMinMaxValues(C.MIN_WIDTH, C.MAX_WIDTH)
     widthSlider:SetValueStep(1)
@@ -335,9 +353,9 @@ function addon.InitializeOptions()
         self:SetValue(addon.GetBarWidth())
     end)
 
-    CreateLabel(panel, 16, -368, "Background Alpha")
+    CreateLabel(panel, 16, -400, "Background Alpha")
     local alphaSlider = CreateFrame("Slider", "MattsTalentedOptionsAlphaSlider", panel, "OptionsSliderTemplate")
-    alphaSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 130, -362)
+    alphaSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 130, -394)
     alphaSlider:SetWidth(160)
     alphaSlider:SetMinMaxValues(0, 100)
     alphaSlider:SetValueStep(1)
@@ -358,10 +376,10 @@ function addon.InitializeOptions()
         self:SetValue((db and db.bgAlphaPercent) or addon.DEFAULT_BG_ALPHA_PERCENT)
     end)
 
-    CreateLabel(panel, 16, -416, "Font")
+    CreateLabel(panel, 16, -448, "Font")
     local fontButton = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
     fontButton:SetSize(130, 22)
-    fontButton:SetPoint("TOPLEFT", panel, "TOPLEFT", 70, -410)
+    fontButton:SetPoint("TOPLEFT", panel, "TOPLEFT", 70, -442)
     fontButton:SetScript("OnClick", function()
         addon.ToggleFontMode()
         if addon.GetCurrentStyleTooltipText then
@@ -380,9 +398,9 @@ function addon.InitializeOptions()
         addon.OpenTextColorPicker()
     end)
 
-    CreateLabel(panel, 16, -460, "Global Scale")
+    CreateLabel(panel, 16, -492, "Global Scale")
     local scaleSlider = CreateFrame("Slider", "MattsTalentedOptionsMainScaleSlider", panel, "OptionsSliderTemplate")
-    scaleSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 130, -454)
+    scaleSlider:SetPoint("TOPLEFT", panel, "TOPLEFT", 130, -486)
     scaleSlider:SetWidth(160)
     scaleSlider:SetMinMaxValues(60, 140)
     scaleSlider:SetValueStep(1)
